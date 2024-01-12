@@ -23,7 +23,7 @@ b = [rd.randint(s[i], 100) for i in range(M)] #Preorder Cost
 A = [[rd.randint(1, 10) for _ in range(M)]for _ in range(N)] #The amount of parts that each products need
 
 ################################################################
-#########       Generating d      ###############################
+#########       Generating d (demands)     #####################
 d = np.array([np.random.binomial(N_b, p, size=N) for _ in range(S)])
 d = d.tolist()
 
@@ -52,7 +52,7 @@ m.setObjective(                            #Equation 8
 m.update()
 m.optimize()
 print(f"objective val = {m.ObjVal}")
-#If the value is negative, its meaning is the money you earn after all the process
+#If the value is X -> X<0 mean (-X) is profit, else X is loss
 for v in m.getVars():
     print(f"{v.VarName} = {v.X}")
 
