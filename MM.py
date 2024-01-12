@@ -4,24 +4,26 @@ import numpy as np
 from scipy.stats import binom
 N = 8 #products
 M = 5 #parts
-S = 2
-N_b = 10
-p = 0.5
-ps = 0.5
+S = 2 #scenarios
+N_b = 10 #Range of the Binomial distribution
+p = 0.5 #Probability of the Binomial distribution
+ps = 0.5 #Probability of each scenario
 
-m = gp.Model("Multiproduct Assembly")
+m = gp.Model("Multiproduct Assembly") #Create a model
 #m.setParam('OutputFlag', 0)  #pls don't add this
 
-z = m.addVars(S, N, lb=0, ub=gp.GRB.INFINITY, vtype=gp.GRB.INTEGER, name = "ProductsProduced") #number of unit produced
-y = m.addVars(S, M, lb=0, ub=gp.GRB.INFINITY, vtype=gp.GRB.INTEGER, name = "PartsScrapped") #number of unit left in inventory
-x = m.addVars(M, lb=0, ub=gp.GRB.INFINITY, vtype=gp.GRB.INTEGER, name = "PartsPreOrdered") #number of unit ordered
+z = m.addVars(S, N, lb=0, ub=gp.GRB.INFINITY, vtype=gp.GRB.INTEGER, name = "ProductsProduced") #create var z #number of unit produced
+y = m.addVars(S, M, lb=0, ub=gp.GRB.INFINITY, vtype=gp.GRB.INTEGER, name = "PartsScrapped") #create var y #number of unit left in inventory
+x = m.addVars(M, lb=0, ub=gp.GRB.INFINITY, vtype=gp.GRB.INTEGER, name = "PartsPreOrdered") #create var x #number of unit ordered
 
-l = [rd.randint(1, 100) for _ in range(N)]
-q = [rd.randint(1000, 100000) for i in range(N)]
-s = [rd.randint(1, 100) for _ in range(M)]
-b = [rd.randint(s[i], 100) for i in range(M)]
-A = [[rd.randint(1, 10) for _ in range(M)]for _ in range(N)]
+l = [rd.randint(1, 100) for _ in range(N)] #Production Cost
+q = [rd.randint(1000, 100000) for i in range(N)] #Purchase Value
+s = [rd.randint(1, 100) for _ in range(M)] #Scrapping Value
+b = [rd.randint(s[i], 100) for i in range(M)] #Preorder Cost
+A = [[rd.randint(1, 10) for _ in range(M)]for _ in range(N)] #The amount of parts that each products need
 
+################################################################
+#########       Generating d      ###############################
 d = np.array([np.random.binomial(N_b, p, size=N) for _ in range(S)])
 d = d.tolist()
 
@@ -31,25 +33,26 @@ for values in d:
     binomial_dist = binom(N_b, p)
     pmf_values = [binomial_dist.pmf(value) for value in values]
     d_p.append(pmf_values)
+################################################################
 
-
-ConstrY = m.addConstrs((
+ConstrY = m.addConstrs((        #Constraint in Equation 7
     y[k, j] == x[j] - gp.quicksum(A[i][j] * z[k, i] for i in range(N)) for j in range(M) for k in range(S)
 ), name = "Constraint.y")
 
-ConstrZ = m.addConstrs((
+ConstrZ = m.addConstrs((        #Constraint in Equation 7
     z[k, i] <= d[k][i] for i in range(N) for k in range(S)
 ), name = "Constraint.z")
 
 
-m.setObjective(
+m.setObjective(                            #Equation 8
     gp.quicksum(b[j] * x[j] for j in range(M))
     + ps * (gp.quicksum((gp.quicksum(d_p[k][i] * (l[i] - q[i]) * z[k, i] for i in range(N)) - gp.quicksum(s[j] * y[k, j] for j in range(M))) for k in range(S)))
-, sense = gp.GRB.MINIMIZE)
+, sense = gp.GRB.MINIMIZE) 
 
 m.update()
 m.optimize()
 print(f"objective val = {m.ObjVal}")
+#If the value is negative, its meaning is the money you earn after all the process
 for v in m.getVars():
     print(f"{v.VarName} = {v.X}")
 
