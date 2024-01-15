@@ -5,6 +5,8 @@ This git repository contains 'my' solution for the Multistage Production/Multipr
 \
 It is written in Python using Gurobi as themain tool to solve the optimization problem.\
 \
+Feels free to ask.\
+\
 **Required modules**
 ```
 gurobipy
