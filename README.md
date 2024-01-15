@@ -3,7 +3,7 @@ Mathematical Modeling Assignment for K231.\
 \
 This git repository contains 'my' solution for the Multistage Production/Multiproduct Assembly problem in Mathematical Modeling.\
 \
-It is written in Python using Gurobi as themain tool to solve the optimization problem.\
+It is written in Python using Gurobi as the main tool to solve the optimization problem.\
 \
 Feel free to ask.\
 \
